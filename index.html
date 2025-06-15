@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Betawarper/7</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: #000;
+      color: #0f0;
+      padding: 2rem;
+    }
+    input, button {
+      font-family: monospace;
+      padding: 0.5rem;
+      background-color: #111;
+      color: #0f0;
+      border: 1px solid #0f0;
+      margin-top: 1rem;
+    }
+    .result {
+      margin-top: 2rem;
+      white-space: pre-wrap;
+    }
+    sup {
+      vertical-align: super;
+      font-size: 0.8em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Betawarper/7</h1>
+  <label for="betawarp">Enter Beta-warp value (βw):</label><br />
+  <input type="number" id="betawarp" step="any" placeholder="e.g. 1" /><br />
+  <button onclick="calculateWarp()">Calculate</button>
+
+  <div class="result" id="output"></div>
+
+  <script>
+    const c = 299792.458; // speed of light in km/s
+    const secondsPerYear = 31557600;
+    const lyInKm = 9.461e12;
+
+    function formatScientific(val) {
+      if (val === 0) return '0';
+      const exp = Math.floor(Math.log10(Math.abs(val)));
+      const base = (val / Math.pow(10, exp)).toFixed(4);
+      return `${base} × 10<sup>${exp}</sup>`;
+    }
+
+    function formatTimePrefix(timeInSec) {
+      const prefixes = [
+        { unit: 's', factor: 1 },
+        { unit: 'ms', factor: 1e-3 },
+        { unit: 'μs', factor: 1e-6 },
+        { unit: 'ns', factor: 1e-9 },
+        { unit: 'ps', factor: 1e-12 },
+        { unit: 'fs', factor: 1e-15 },
+        { unit: 'as', factor: 1e-18 },
+      ];
+      for (let p of prefixes) {
+        if (timeInSec >= p.factor) {
+          return `${(timeInSec / p.factor).toFixed(8)} ${p.unit}`;
+        }
+      }
+      return formatScientific(timeInSec) + ' s';
+    }
+
+    function calculateWarp() {
+      const input = parseFloat(document.getElementById('betawarp').value);
+      const output = document.getElementById('output');
+
+      if (!input || input <= 0) {
+        output.innerText = 'Please enter a valid βw value > 0';
+        return;
+      }
+
+      // Time to Andromeda (2.537 million light-years)
+      const distanceLy = 2537000;
+      const lyPerHr = input; // 1 βw = 1 ly/hr
+      const totalHours = distanceLy / lyPerHr;
+      const totalSeconds = totalHours * 3600;
+      const years = totalSeconds / secondsPerYear;
+
+      // Velocity in km/s
+      const kmPerHour = input * lyInKm;
+      const kmPerSec = kmPerHour / 3600;
+      const velocity = kmPerSec < 1e-20 ? formatScientific(kmPerSec) : kmPerSec.toFixed(20);
+
+      // Time per light-year
+      const secondsPerLy = 3600 / input;
+      const formattedTime = formatTimePrefix(secondsPerLy);
+
+      output.innerHTML =
+        `Distance to Andromeda: ${distanceLy.toLocaleString()} ly\n` +
+        `Travel Time: ${years.toFixed(6)} years\n` +
+        `Speed: ${velocity} km/s\n` +
+        `Time to cross 1 light-year: ${formattedTime}`;
+    }
+  </script>
+</body>
+</html>
